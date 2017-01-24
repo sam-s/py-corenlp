@@ -1,5 +1,15 @@
 import json, requests
 
+class NoStanfordCoreNLPServer(Exception):
+    def __init__(self, server_url):
+        self.server_url = server_url
+
+    def __str__(self):
+        return ('Cannot connect to <%s>.\nPlease start the CoreNLP server, e.g.:\n'
+                '$ cd stanford-corenlp-full-2015-12-09/\n'
+                '$ java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer'
+                % (self.server_url))
+
 class StanfordCoreNLP:
 
     def __init__(self, server_url):
@@ -18,9 +28,7 @@ class StanfordCoreNLP:
         try:
             requests.get(self.server_url)
         except requests.exceptions.ConnectionError:
-            raise Exception('Check whether you have started the CoreNLP server e.g.\n'
-            '$ cd stanford-corenlp-full-2015-12-09/ \n'
-            '$ java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer')
+            raise NoStanfordCoreNLPServer(self.server_url)
 
         data = text.encode()
         r = requests.post(
