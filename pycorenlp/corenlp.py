@@ -39,7 +39,7 @@ class StanfordCoreNLP:
         if ('outputFormat' in properties
              and properties['outputFormat'] == 'json'):
             try:
-                output = json.loads(output, encoding='utf-8', strict=True)
+                output = json.loads(output, strict=True)
             except:
                 pass
         return output
