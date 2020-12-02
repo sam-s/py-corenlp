@@ -10,8 +10,15 @@ class NoStanfordCoreNLPServer(Exception):
                 '$ java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer'
                 % (self.server_url))
 
-class StanfordCoreNLP:
+class StanfordCoreNLPError(Exception):
+    def __init__(self, reason, message):
+        self.reason = reason
+        self.message = message
 
+    def __str__(self):
+        return "%s(%s): %s" % (self.__class__.__name__,self.reason,self.message)
+
+class StanfordCoreNLP:
     def __init__(self, server_url):
         if server_url[-1] == '/':
             server_url = server_url[:-1]
@@ -30,19 +37,15 @@ class StanfordCoreNLP:
         except requests.exceptions.ConnectionError:
             raise NoStanfordCoreNLPServer(self.server_url)
 
-        data = text.encode()
         r = requests.post(
             self.server_url, params={
                 'properties': str(properties)
-            }, data=data, headers={'Connection': 'close'})
-        output = r.text
-        if ('outputFormat' in properties
-             and properties['outputFormat'] == 'json'):
-            try:
-                output = json.loads(output, strict=True)
-            except:
-                pass
-        return output
+            }, data=text.encode(), headers={'Connection': 'close'})
+        if not r.ok:
+            raise StanfordCoreNLPError(r.reason, r.text)
+        if properties.get('outputFormat') == 'json':
+            return json.loads(r.text)
+        return r.text
 
     def tokensregex(self, text, pattern, filter):
         return self.regex('/tokensregex', text, pattern, filter)
@@ -56,9 +59,6 @@ class StanfordCoreNLP:
                 'pattern':  pattern,
                 'filter': filter
             }, data=text)
-        output = r.text
-        try:
-            output = json.loads(r.text)
-        except:
-            pass
-        return output
+        if not r.ok:
+            raise StanfordCoreNLPError(r.reason, r.text)
+        return json.loads(r.text)

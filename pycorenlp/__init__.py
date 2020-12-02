@@ -1,1 +1,1 @@
-from pycorenlp.corenlp import StanfordCoreNLP, NoStanfordCoreNLPServer
+from pycorenlp.corenlp import StanfordCoreNLP, StanfordCoreNLPError, NoStanfordCoreNLPServer
